@@ -1,3 +1,4 @@
+use anyhow::Context;
 use askama::Template;
 use axum::{
     http::StatusCode,
@@ -5,6 +6,7 @@ use axum::{
     routing::get,
     Router,
 };
+use tower_http::services::ServeDir;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -19,9 +21,14 @@ async fn main() -> anyhow::Result<()> {
         .init();
     info!("initializing router...");
 
-    let router= Router::new().route("/", get(hello));
+    let assets_path = std::env::current_dir().unwrap();
+    //let router= Router::new().route("/", get(hello));
     let port = 8000_u16;
     let addr = std::net::SocketAddr::from(([0,0,0,0], port));
+    let router = Router::new().route("/", get(hello)).nest_service(
+        "/assets",
+        ServeDir::new(format!("{}/assets", assets_path.to_str().unwrap())),
+    );
 
     info!("router initialized, now listening on port {}", port);
     println!("Hello, world server running!");
