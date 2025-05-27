@@ -1,61 +1,75 @@
-use askama::Template;
-use axum::{
-    http::StatusCode,
-    response::{Html, IntoResponse, Response},
-    routing::get,
-    Router,
-};
-use tracing::info;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+#![allow(unused)]   //https://www.youtube.com/watch?v=XZtlD_m59sM&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=2
+                    //https://www.youtube.com/watch?v=3cA_mk4vdWY&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q
+pub use self::error::{Error, Result};
+
+use axum::extract::{Path, Query};
+use axum::response::{Html, IntoResponse, Response};
+use axum::{middleware, Router};
+use axum::routing::{get, get_service};
+use tower_cookies::CookieManagerLayer;
+use std::net::SocketAddr;
+use serde::Deserialize;
+use tower_http::services::ServeDir;
+
+mod error;
+mod web;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "with_axum_htmx_askama=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
-    info!("initializing router...");
+async fn main() {
+    //let routes_hello = Router::<()>::new()
+    let routes_all = Router::new()
+        .merge(routes_hello())
+        .merge(web::routes_login::routes())
+        .layer(middleware::map_response(main_response_mapper))
+        .layer(CookieManagerLayer::new())
+        .fallback_service(routes_static());
 
-    let router= Router::new().route("/", get(hello));
-    let port = 8000_u16;
-    let addr = std::net::SocketAddr::from(([0,0,0,0], port));
-
-    info!("router initialized, now listening on port {}", port);
-    println!("Hello, world server running!");
-
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    
-    axum::serve(listener, router).await .unwrap();
-        
-    Ok(())
+    // region:  --- Start Server
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    println!("->> LISTENING on {addr}\n");
+    axum::Server::bind(&addr)
+        .serve(routes_all.into_make_service())
+        .await
+        .unwrap();
+    // endregion: --- Start Server
 }
 
-async fn hello() -> impl IntoResponse {
-    let template = HelloTemplate {};
-    HtmlTemplate(template)
+async fn main_response_mapper(res: Response) -> Response {
+    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
+
+    println!();
+    res
+
 }
 
-#[derive(Template)]
-#[template(path = "hello.html")]
-struct HelloTemplate;
+fn routes_static() -> Router {
+    Router::new().nest_service("/", get_service(ServeDir::new("./")))
+}
 
-struct HtmlTemplate<T>(T);
+// region:  -- Routes Hello
+fn routes_hello() -> Router {
+    Router::new()
+        .route("/hello", get(handler_hello))
+        .route("/hello2/:name", get(handler_hello2))
+}
 
-impl<T> IntoResponse for HtmlTemplate<T>
-    where
-        T: Template,
-{
-    fn into_response(self) -> Response {
-        match self.0.render() {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {}", err),
-            )
-                .into_response(),
-        }
-    }
+#[derive(Debug, Deserialize)]
+struct HelloParams {
+    name: Option<String>,
+}
+
+// /hello?name=Jen
+async fn handler_hello(Query(params): Query<HelloParams>) -> impl IntoResponse {
+    println!("->> {:<12} - handler_hello - {params:?}", "HANDLER");
+
+    let name = params.name.as_deref().unwrap_or("World!");
+    Html(format!("Hello <strong>{name}</strong>"))
+
+}
+
+// /hello2/Mike
+async fn handler_hello2(Path(name): Path<String>) -> impl IntoResponse {
+    println!("->> {:<12} - handler_hello2 - {name:?}", "HANDLER");
+
+    Html(format!("Hello2 <strong>{name}</strong>"))
 }
