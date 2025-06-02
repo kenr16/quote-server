@@ -1,24 +1,29 @@
 #![allow(unused)]   //https://www.youtube.com/watch?v=XZtlD_m59sM&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=2
-                    //https://www.youtube.com/watch?v=3cA_mk4vdWY&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q
+                    //https://www.youtube.com/watch?v=3cA_mk4vdWY&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=46
 pub use self::error::{Error, Result};
 
 use axum::extract::{Path, Query};
 use axum::response::{Html, IntoResponse, Response};
 use axum::{middleware, Router};
 use axum::routing::{get, get_service};
+use crate::model::ModelController;
 use tower_cookies::CookieManagerLayer;
 use std::net::SocketAddr;
 use serde::Deserialize;
 use tower_http::services::ServeDir;
 
 mod error;
+mod model;
 mod web;
 
 #[tokio::main]
-async fn main() {
-    //let routes_hello = Router::<()>::new()
+async fn main() -> Result<()> {
+	// Initialize ModelController.
+	let mc = ModelController::new().await?;
+ 
     let routes_all = Router::new()
         .merge(routes_hello())
+        .nest("/api", web::routes_tickets::routes(mc.clone()))
         .merge(web::routes_login::routes())
         .layer(middleware::map_response(main_response_mapper))
         .layer(CookieManagerLayer::new())
