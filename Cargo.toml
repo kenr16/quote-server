@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.98"
 askama = "0.14.0"
+async-trait = "0.1"
 axum = { version = "0.6", features = ["macros"]}
 httpc-test = "0.1.10"
 lazy-regex = "2"
