@@ -5,6 +5,8 @@ use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
+mod db;
+
 // region: --- Ticket Types
 #[derive(Clone, Debug, Serialize)]
 pub struct Ticket {

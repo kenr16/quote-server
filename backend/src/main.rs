@@ -16,6 +16,7 @@ use tower_http::services::ServeDir;
 mod ctx;
 mod error;
 mod model;
+mod security;
 mod web;
 
 #[tokio::main]
