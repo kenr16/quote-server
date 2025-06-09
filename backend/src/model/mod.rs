@@ -1,11 +1,30 @@
 // Simplistic Model Layer
-//
+use thiserror::Error as ThisError;
 use crate::ctx::Ctx;
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
 mod db;
+mod todo;
+
+// region:    Error
+#[derive(thiserror::Error, Debug)]
+pub enum Error2 {
+	#[error("Entity Not Found - {0}[{1}] ")]
+	EntityNotFound(&'static str, String),
+
+	#[error(transparent)]
+	SqlxError(#[from] sqlx::Error),
+
+	#[error(transparent)]
+	IOError(#[from] std::io::Error),
+}
+
+// endregion: Error
+
+
+//Unnecessary things after this?
 
 // region: --- Ticket Types
 #[derive(Clone, Debug, Serialize)]
