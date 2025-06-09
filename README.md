@@ -16,6 +16,9 @@ template1=# CREATE USER [username] WITH PASSWORD '[password]';
 template1=# GRANT ALL PRIVILEGES ON DATABASE "[database name]" to [username];
 template1=# \q
 
+existing users can be eleveated to superuser in psql with the following:
+template1=# ALTER USER [username] WITH SUPERUSER;
+
 ## DB
 
 '''sh
