@@ -1,3 +1,4 @@
+/*
 use crate::ctx::Ctx;
 use crate::model::ModelController;
 use crate::web::AUTH_TOKEN;
@@ -66,3 +67,4 @@ fn parse_token(token: String) -> Result<(u64, String, String)> {
 
 	Ok((user_id, exp.to_string(), sign.to_string()))
 }
+*/

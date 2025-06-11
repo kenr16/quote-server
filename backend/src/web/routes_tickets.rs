@@ -1,3 +1,4 @@
+/*
 use crate::model::{ModelController, Ticket, TicketForCreate};
 use crate::Result;
 use crate::ctx::Ctx;
@@ -63,3 +64,5 @@ async fn delete_ticket(
 	Ok(Json(ticket))
 }
 // endregion: --- REST Handlers
+
+*/

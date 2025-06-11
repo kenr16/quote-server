@@ -23,4 +23,5 @@ tower-http = { version = "0.4", features = ["fs"] }
 tower-cookies = "0.9"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+warp = "0.3"
 

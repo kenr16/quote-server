@@ -2,3 +2,41 @@ pub mod mw_auth;
 pub mod routes_login;
 pub mod routes_tickets;
 pub const AUTH_TOKEN: &str = "auth-token";
+//Above unneccesary
+use crate::model::{self, Db};
+use crate::security;
+//use crate::web::todo::todo_rest_filters;
+use serde_json::json;
+use std::convert::Infallible;
+use std::path::Path;
+use std::sync::Arc;
+use warp::{Filter, Rejection, Reply};
+
+
+pub async fn start_web(web_folder: &str, web_port: u16, db: Arc<Db>) -> Result<(), Error> {
+    // Validate the web_folder
+    if !Path::new(web_folder).exists() {
+            return Err(Error::FailStartWebFolderNotFound(web_folder.to_string()));
+    }
+
+    // Static content
+    let content = warp::fs::dir(web_folder.to_string());
+    let root_index = warp::get()
+		.and(warp::path::end())
+		.and(warp::fs::file(format!("{}/index.html", web_folder)));
+	let static_site = content.or(root_index);
+
+    // Combine all routes
+    let routes = static_site;
+
+	println!("Start 127.0.0.1:{} at {}", web_port, web_folder);
+	warp::serve(routes).run(([127, 0, 0, 1], web_port)).await;
+
+    Ok(())
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("Web server failed to start because web-folder '{0}' not found.")]
+    FailStartWebFolderNotFound(String),
+}

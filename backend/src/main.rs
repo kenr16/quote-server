@@ -1,6 +1,9 @@
-#![allow(unused)]   //https://www.youtube.com/watch?v=XZtlD_m59sM&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=2
+/* #![allow(unused)]
+
+                    //https://www.youtube.com/watch?v=XZtlD_m59sM&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=2
                     //https://www.youtube.com/watch?v=3cA_mk4vdWY&list=PL7r-PXl6ZPcCIOFaL7nVHXZvBmHNhrh_Q&index=46
                     //Created by following along with these tutorials!
+
 pub use self::error::{Error, Result};
 
 use axum::extract::{Path, Query};
@@ -12,13 +15,35 @@ use tower_cookies::CookieManagerLayer;
 use std::net::SocketAddr;
 use serde::Deserialize;
 use tower_http::services::ServeDir;
-
+*/
+#![allow(unused)]
 mod ctx;
 mod error;
+
+
+
+use std::env; // silence unused warnings while exploring (to comment out)
+
 mod model;
 mod security;
 mod web;
 
+const DEFAULT_WEB_FOLDER: &'static str = "web-folder/";
+const DEFAULT_WEB_PORT: u16 = 8080;
+
+#[tokio::main]
+async fn main() {
+    // compute the web folder
+    let mut args: Vec<String> = env::args().collect();
+    let web_folder = args.pop().unwrap_or_else(|| DEFAULT_WEB_FOLDER.to_string());
+    let web_port = DEFAULT_WEB_PORT;
+
+    // get the database
+}
+
+
+// Unused code beyond this point.
+/*
 #[tokio::main]
 async fn main() -> Result<()> {
 	// Initialize ModelController.
@@ -86,3 +111,4 @@ async fn handler_hello2(Path(name): Path<String>) -> impl IntoResponse {
 
     Html(format!("Hello2 <strong>{name}</strong>"))
 }
+*/
