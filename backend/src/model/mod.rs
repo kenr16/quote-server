@@ -1,17 +1,19 @@
+/*
 // Simplistic Model Layer
 use thiserror::Error as ThisError;
 use crate::ctx::Ctx;
 //use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
-//Above unnecessary
+//Aboe unnecessary
+*/
 mod db;
 mod todo;
 
 // re-export
-//pub use db::init_db;
+pub use db::init_db;
 pub use db::Db;
-//pub use todo::{Todo, TodoMac, TodoPatch, TodoStatus};
+pub use todo::{Todo, TodoMac, TodoPatch, TodoStatus};
 
 // region:    Error
 #[derive(thiserror::Error, Debug)]

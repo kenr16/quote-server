@@ -1,8 +1,3 @@
-pub mod mw_auth;
-pub mod routes_login;
-pub mod routes_tickets;
-pub const AUTH_TOKEN: &str = "auth-token";
-//Above unneccesary
 use crate::model::{self, Db};
 use crate::security;
 //use crate::web::todo::todo_rest_filters;
@@ -11,6 +6,8 @@ use std::convert::Infallible;
 use std::path::Path;
 use std::sync::Arc;
 use warp::{Filter, Rejection, Reply};
+
+mod todo;
 
 
 pub async fn start_web(web_folder: &str, web_port: u16, db: Arc<Db>) -> Result<(), Error> {
