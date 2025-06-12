@@ -1,5 +1,7 @@
-use super::todo_rest_filters;
-use crate::model::{init_db, Todo, TodoMac, TodoStatus};
+// *** Replaces web_todo.rs from the same directory ***
+
+use super::quote_rest_filters;
+use crate::model::{init_db, Quote, QuoteMac};
 use crate::security::utx_from_token;
 use crate::web::handle_rejection;
 use anyhow::{Context, Result};
@@ -12,166 +14,166 @@ use warp::hyper::Response;
 use warp::Filter;
 
 #[tokio::test]
-async fn web_todo_list() -> Result<()> {
+async fn web_quote_list() -> Result<()> {
 	// FIXTURE
 	let db = init_db().await?;
 	let db = Arc::new(db);
-	let todo_apis = todo_rest_filters("api", db.clone()).recover(handle_rejection);
+	let quote_apis = quote_rest_filters("api", db.clone()).recover(handle_rejection);
 
 	// ACTION
 	let resp = warp::test::request()
 		.method("GET")
 		.header("X-Auth-Token", "123")
-		.path("/api/todos")
-		.reply(&todo_apis)
+		.path("/api/quotes")
+		.reply(&quote_apis)
 		.await;
 
 	// CHECK
 	assert_eq!(200, resp.status(), "http status");
 
 	// extract response .data
-	let todos: Vec<Todo> = extract_body_data(resp)?;
+	let quotes: Vec<Quote> = extract_body_data(resp)?;
 
-	// CHECK - todos
-	assert_eq!(2, todos.len(), "number of todos");
-	assert_eq!(100, todos[0].id);
-	assert_eq!("todo 100", todos[0].title);
-	assert_eq!(TodoStatus::Close, todos[0].status);
+	// CHECK - quotes
+	assert_eq!(2, quotes.len(), "number of quotes");
+	assert_eq!(101, quotes[0].id);
+	assert_eq!("test quote 101", quotes[0].quote);
+	assert_eq!("unknown", quotes[0].author);
 
 	Ok(())
 }
 
 #[tokio::test]
-async fn web_todo_get_ok() -> Result<()> {
+async fn web_quote_get_ok() -> Result<()> {
 	// FIXTURE
 	let db = init_db().await?;
 	let db = Arc::new(db);
-	let todo_apis = todo_rest_filters("api", db).recover(handle_rejection);
+	let quote_apis = quote_rest_filters("api", db).recover(handle_rejection);
 
 	// ACTION
 	let resp = warp::test::request()
 		.method("GET")
 		.header("X-Auth-Token", "123")
-		.path("/api/todos/100")
-		.reply(&todo_apis)
+		.path("/api/quotes/100")
+		.reply(&quote_apis)
 		.await;
 
 	// CHECK - status
 	assert_eq!(200, resp.status(), "http status");
 
 	// extract response .data
-	let todo: Todo = extract_body_data(resp)?;
+	let quote: Quote = extract_body_data(resp)?;
 
-	// CHECK - .data (todo)
-	assert_eq!(100, todo.id);
-	assert_eq!("todo 100", todo.title);
-	assert_eq!(TodoStatus::Close, todo.status);
+	// CHECK - .data (quote)
+	assert_eq!(100, quote.id);
+	assert_eq!("test quote 100", quote.quote);
+	assert_eq!("test author", quote.author);
 
 	Ok(())
 }
 
 #[tokio::test]
-async fn web_todo_create_ok() -> Result<()> {
+async fn web_quote_create_ok() -> Result<()> {
 	// FIXTURE
 	let db = init_db().await?;
 	let db = Arc::new(db);
-	let todo_apis = todo_rest_filters("api", db.clone()).recover(handle_rejection);
-	// new todo fixture
-	const TITLE: &str = "test - web_todo_create_ok";
+	let quote_apis = quote_rest_filters("api", db.clone()).recover(handle_rejection);
+	// new quote fixture
+	const QUOTE: &str = "test - web_quote_create_ok";
 	let body = json!({
-		"title": TITLE,
+		"quote": QUOTE,
 	});
 
 	// ACTION
 	let resp = warp::test::request()
 		.method("POST")
 		.header("X-Auth-Token", "123")
-		.path("/api/todos")
+		.path("/api/quotes")
 		.json(&body)
-		.reply(&todo_apis)
+		.reply(&quote_apis)
 		.await;
 
 	// CHECK - status
 	assert_eq!(200, resp.status(), "http status");
 
 	// extract response .data
-	let todo: Todo = extract_body_data(resp)?;
+	let quote: Quote = extract_body_data(resp)?;
 
-	// CHECK - .data (todo)
-	assert!(todo.id >= 1000, "todo.id should be >= to 1000");
-	assert_eq!(TITLE, todo.title);
-	assert_eq!(TodoStatus::Open, todo.status);
+	// CHECK - .data (quote)
+	assert!(quote.id >= 1000, "quote.id should be >= to 1000");
+	assert_eq!(QUOTE, quote.quote);
+	assert_eq!("unknown", quote.author);
 
 	Ok(())
 }
 
 #[tokio::test]
-async fn web_todo_update_ok() -> Result<()> {
+async fn web_quote_update_ok() -> Result<()> {
 	// FIXTURE
 	let db = init_db().await?;
 	let db = Arc::new(db);
-	let todo_apis = todo_rest_filters("api", db.clone()).recover(handle_rejection);
-	// udpated todo
-	const TITLE: &str = "test - todo 100 updated";
+	let quote_apis = quote_rest_filters("api", db.clone()).recover(handle_rejection);
+	// udpated quote
+	const QUOTE: &str = "test - quote 100 updated";
 	let body = json!({
-		"title": TITLE,
-		"status": "Open"
+		"quote": QUOTE,
+		"author": "test - author updated"
 	});
 
 	// ACTION
 	let resp = warp::test::request()
 		.method("PATCH")
 		.header("X-Auth-Token", "123")
-		.path("/api/todos/100")
+		.path("/api/quotes/100")
 		.json(&body)
-		.reply(&todo_apis)
+		.reply(&quote_apis)
 		.await;
 
 	// CHECK - status
 	assert_eq!(200, resp.status(), "http status");
 
 	// extract response .data
-	let todo: Todo = extract_body_data(resp)?;
+	let quote: Quote = extract_body_data(resp)?;
 
-	// CHECK - .data (todo)
-	assert_eq!(100, todo.id, "todo.id");
-	assert_eq!(TITLE, todo.title);
-	assert_eq!(TodoStatus::Open, todo.status);
+	// CHECK - .data (quote)
+	assert_eq!(100, quote.id, "quote.id");
+	assert_eq!(QUOTE, quote.quote);
+	assert_eq!("test - author updated", quote.author);
 
 	Ok(())
 }
 
 #[tokio::test]
-async fn web_todo_delete_ok() -> Result<()> {
+async fn web_quote_delete_ok() -> Result<()> {
 	// FIXTURE
 	let db = init_db().await?;
 	let db = Arc::new(db);
-	let todo_apis = todo_rest_filters("api", db.clone()).recover(handle_rejection);
+	let quote_apis = quote_rest_filters("api", db.clone()).recover(handle_rejection);
 
 	// ACTION
 	let resp = warp::test::request()
 		.method("DELETE")
 		.header("X-Auth-Token", "123")
-		.path("/api/todos/100")
-		.reply(&todo_apis)
+		.path("/api/quotes/100")
+		.reply(&quote_apis)
 		.await;
 
 	// CHECK - status
 	assert_eq!(200, resp.status(), "http status");
 
 	// extract response .data
-	let todo: Todo = extract_body_data(resp)?;
+	let quote: Quote = extract_body_data(resp)?;
 
-	// CHECK - .data (todos)
-	assert_eq!(100, todo.id);
-	assert_eq!("todo 100", todo.title);
-	assert_eq!(TodoStatus::Close, todo.status);
+	// CHECK - .data (quotes)
+	assert_eq!(100, quote.id);
+	assert_eq!("test quote 100", quote.quote);
+	assert_eq!("test author", quote.author);
 
 	// CHECK - list .len() should be 1
 	let utx = utx_from_token(&db, "123").await?;
-	let todos = TodoMac::list(&db, &utx).await?;
-	assert_eq!(1, todos.len(), "todos length");
-	assert_eq!(101, todos[0].id, "Todo remaining should be 101");
+	let quotes = QuoteMac::list(&db, &utx).await?;
+	assert_eq!(1, quotes.len(), "quotes length");
+	assert_eq!(101, quotes[0].id, "quote remaining should be 101");
 
 	Ok(())
 }

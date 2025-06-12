@@ -1,6 +1,6 @@
 use crate::model::{self, Db};
 use crate::security;
-use crate::web::todo::todo_rest_filters;
+use crate::web::quote::quote_rest_filters; // Replaces abovve
 use serde_json::json;
 use std::convert::Infallible;
 use std::path::Path;
@@ -9,7 +9,7 @@ use warp::{Filter, Rejection, Reply};
 
 mod filter_auth;
 mod filter_utils;
-mod todo;
+mod quote; // Replaces abovve 
 
 pub async fn start_web(web_folder: &str, web_port: u16, db: Arc<Db>) -> Result<(), Error> {
     // Validate the web_folder
@@ -18,7 +18,7 @@ pub async fn start_web(web_folder: &str, web_port: u16, db: Arc<Db>) -> Result<(
     }
 
 	// Apis
-	let apis = todo_rest_filters("api", db);
+	let apis = quote_rest_filters("api", db);
 
     // Static content
     let content = warp::fs::dir(web_folder.to_string());
@@ -40,7 +40,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
 	// Print to server side
 	println!("ERROR - {:?}", err);
 
-	// TODO - Call log API for capture and store
+	// Quote - Call log API for capture and store
 
 	// Build user message
 	let user_message = match err.find::<WebErrorMessage>() {

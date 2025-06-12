@@ -8,12 +8,13 @@ use std::sync::{Arc, Mutex};
 //Aboe unnecessary
 */
 mod db;
-mod todo;
+//My own two additions here:
+mod quote;
+pub use quote::{Quote, QuoteMac, QuotePatch};
 
 // re-export
 pub use db::init_db;
 pub use db::Db;
-pub use todo::{Todo, TodoMac, TodoPatch, TodoStatus};
 
 // region:    Error
 #[derive(thiserror::Error, Debug)]

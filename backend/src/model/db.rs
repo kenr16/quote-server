@@ -4,18 +4,16 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
 
-
-
 const PG_HOST: &str = "localhost";
 const PG_ROOT_DB: &str = "postgres";
 const PG_ROOT_USER: &str = "postgres";
 const PG_ROOT_PWD: &str = "postgres";
-// app db
+// App db
 const PG_APP_DB: &str = "app_db";
 const PG_APP_USER: &str = "app_user";
 const PG_APP_PWD: &str = "app_pwd_to_change";
 const PG_APP_MAX_CON: u32 = 5;
-// sql files
+// Sql files
 const SQL_DIR: &str = "sql/";
 const SQL_RECREATE: &str = "sql/00-recreate-db.sql";
 
@@ -43,7 +41,7 @@ pub async fn init_db() -> Result<Db, sqlx::Error> {
     }
 
 
-    // returning the application database
+    // Returning the application database
     new_db_pool(PG_HOST, PG_APP_DB, PG_APP_USER, PG_APP_PWD, PG_APP_MAX_CON).await
 }
 
