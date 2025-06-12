@@ -6,26 +6,26 @@ A very basic quote web server written in Rust.
 ## DB
 *The database here uses postgres and assumes that there is a user called 'postgres' with password 'postgres' and superuser priviledges.
 '''sh
-# Start the database
+### Start the database
 docker run --rm -p 5432:5432 -e "POSTGRES_PASSWORD=postgres" --name pg postgres:14
 
-# Optional psql (other terminal)
+### Optional psql (other terminal)
 docker exec -it -u postgers pg psql
 '''
 
 ## Dev Test
 '''sh
-# Test for the model:
+### Test for the model:
 cargo watch -q -c -w src/ -x 'test model_ -- --test-threads=1 --nocapture'
 
-# Test for the web component:
+### Test for the web component:
 cargo watch -q -c -w src/ -x 'test web_ -- --test-threads=1 --nocapture'
 
-# Test only the database:
+### Test only the database:
 cargo watch -q -c -w src/ -x 'test model_db_ -- --test-threads=1 --nocapture'
 '''
 
-## Dev Web Tests
+### Dev Web Tests
 
 '''sh
 cd backend
