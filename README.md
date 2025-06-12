@@ -53,6 +53,8 @@ docker exec -it -u postgers pg psql
 '''
 
 # Things I have learned:
+The mod.rs file will usually need to be updated with a list of modules anytime one wishes to export a function, even if the exported function is not being exported to or from the mod.rs file within the directory itself.
+
 It is necessary to run a database in one terminal window, while running the server in another, and helpful to have a thrid window open to run testing on saves.
 
 Rust will look in two places for a module listed as "mod model":

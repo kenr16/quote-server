@@ -2,6 +2,7 @@
 name = "with-axum-htmx-askama"
 version = "0.1.0"
 edition = "2024"
+author = "Ken Rutan" following a tutorial online be Jeremy Chone.
 
 [dependencies]
 anyhow = "1.0.98"

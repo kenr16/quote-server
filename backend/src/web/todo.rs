@@ -19,15 +19,78 @@ pub fn todo_rest_filters(base_path: &'static str, db: Arc<Db>,) -> impl Filter<E
 		.and(common.clone())
 		.and_then(todo_list);
 
-    list
+	// Get todo 'GET /todo/100'
+	let get = todos_path
+		.and(warp::get())
+		.and(common.clone())
+		.and(warp::path::param())
+		.and_then(todo_get);
+
+	// CREATE todo `POST /todos with body TodoPatch`
+	let create = todos_path
+		.and(warp::post())
+		.and(common.clone())
+		.and(warp::body::json())
+		.and_then(todo_create);
+
+	// UPDATE todo `PATCH /todos/100 with body TodoPatch`
+	let update = todos_path
+		.and(warp::patch())
+		.and(common.clone())
+		.and(warp::path::param())
+		.and(warp::body::json())
+		.and_then(todo_update);
+
+	// DELETE todo `DELETE /todos/100`
+	let delete = todos_path
+		.and(warp::delete())
+		.and(common.clone())
+		.and(warp::path::param())
+		.and_then(todo_delete);
+
+	list.or(get).or(create).or(update).or(delete)
 }
 
 async fn todo_list(db: Arc<Db>, utx: UserCtx) -> Result<Json, warp::Rejection> {
 	let todos = TodoMac::list(&db, &utx).await?;
-	//json_response(todos)
-    let response = json!({"data": todos});
-    Ok(warp::reply::json(&response))
+	json_response(todos)
 }
+
+async fn todo_get(db: Arc<Db>, utx: UserCtx, id: i64) -> Result<Json, warp::Rejection> {
+	let todo = TodoMac::get(&db, &utx, id).await?;
+	json_response(todo)
+}
+
+async fn todo_create(db: Arc<Db>, utx: UserCtx, patch: TodoPatch) -> Result<Json, warp::Rejection> {
+	let todo = TodoMac::create(&db, &utx, patch).await?;
+	json_response(todo)
+}
+
+async fn todo_update(db: Arc<Db>, utx: UserCtx, id: i64, patch: TodoPatch) -> Result<Json, warp::Rejection> {
+	let todo = TodoMac::update(&db, &utx, id, patch).await?;
+	json_response(todo)
+}
+
+async fn todo_delete(db: Arc<Db>, utx: UserCtx, id: i64) -> Result<Json, warp::Rejection> {
+	let todo = TodoMac::delete(&db, &utx, id).await?;
+	json_response(todo)
+}
+
+
+
+
+
+
+
+
+
+// region:    Utils
+fn json_response<D: Serialize>(data: D) -> Result<Json, warp::Rejection> {
+	let response = json!({ "data": data });
+	Ok(warp::reply::json(&response))
+}
+// endregion: Utils
+
 // region: Test
 #[cfg(test)]
 #[path = "../tests/web_todo.rs"]
