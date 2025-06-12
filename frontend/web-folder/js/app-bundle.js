@@ -1190,7 +1190,7 @@
   const quoteMco = new QuoteMco();
 
   var _QuoteMvc_quoteInputEl, _QuoteMvc_quoteListEl, _QuoteInput_quoteInput, _QuoteInput_authorInput, _QuoteItem_instances, _QuoteItem_quoteEl, _QuoteItem_authorEl, _QuoteItem_data, _QuoteItem_safeClass;
-  /* ------------------- quote-mvc ------------------- */
+  // Region: Quote Model View Controller
   let QuoteMvc = class QuoteMvc extends BaseHTMLElement {
       constructor() {
           super(...arguments);

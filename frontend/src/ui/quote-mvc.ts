@@ -1,4 +1,3 @@
-// quote-mvc.ts
 import {
   BaseHTMLElement,
   customElement,
@@ -11,7 +10,7 @@ import {
 } from 'dom-native';
 import { Quote, quoteMco } from '../model/quote-mco';
 
-/* ------------------- quote-mvc ------------------- */
+// Region: Quote Model View Controller
 @customElement("quote-mvc")
 class QuoteMvc extends BaseHTMLElement {
   #quoteInputEl!: QuoteInput;
