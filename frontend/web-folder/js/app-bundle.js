@@ -963,10 +963,10 @@
   let TodoMvc = class TodoMvc extends BaseHTMLElement {
       //#todoInputEl!: TodoInput;
       //#todoListEl!: HTMLElement;
-      init() {
+      init() { //Background wording.
           let htmlContent = html `
       <div class="box"></div>
-      <h1>todos</h1>
+      <h1>Quote Server</h1>
       <todo-input></todo-input>
       <todo-list></todo-list>    
     `;
