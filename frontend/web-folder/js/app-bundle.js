@@ -1166,185 +1166,185 @@
       return res.data;
   }
 
-  class TodoMco {
+  // *** Replaces todo-mco.ts ***
+  class QuoteMco {
       async list() {
-          const data = await webGet("todos");
+          const data = await webGet("quotes");
           return data;
       }
       async create(data) {
-          // guard (TODO - validate data)
-          if (data.title == null || data.title.trim().length == 0) {
-              throw new Error("Cannot create Todo with empty title");
+          // guard (QUOTE - validate data)
+          if (data.quote == null || data.quote.trim().length == 0) {
+              throw new Error("Cannot create Quote with empty title");
           }
           // to server
-          const newData = await webPost('todos', data);
+          const newData = await webPost('quotes', data);
           // sending event
-          hub('dataHub').pub('Todo', 'create', newData);
+          hub('dataHub').pub('Quote', 'create', newData);
           return newData;
       }
       async update(id, data) {
           // TODO - validate data
           // to server
-          const newData = await webPatch(`todos/${id}`, data);
+          const newData = await webPatch(`quotes/${id}`, data);
           // event
-          hub('dataHub').pub('Todo', 'update', newData);
+          hub('dataHub').pub('Quote', 'update', newData);
           return newData;
       }
       async delete(id) {
           // to server
-          const oldData = await webDelete(`todos/${id}`);
+          const oldData = await webDelete(`quotes/${id}`);
           // event
-          hub('dataHub').pub('Todo', 'delete', oldData);
+          hub('dataHub').pub('Quote', 'delete', oldData);
           return oldData;
       }
   }
-  const todoMco = new TodoMco();
+  const quoteMco = new QuoteMco();
 
-  var _TodoMvc_todoInputEl, _TodoMvc_todoListEl, _TodoInput_inputEl, _TodoItem_titleEl, _TodoItem_data;
-  let TodoMvc = class TodoMvc extends BaseHTMLElement {
+  var _QuoteMvc_quoteInputEl, _QuoteMvc_quoteListEl, _QuoteInput_inputEl, _QuoteItem_titleEl, _QuoteItem_data;
+  let QuoteMvc = class QuoteMvc extends BaseHTMLElement {
       constructor() {
           super(...arguments);
-          _TodoMvc_todoInputEl.set(this, void 0);
-          _TodoMvc_todoListEl.set(this, void 0);
+          _QuoteMvc_quoteInputEl.set(this, void 0);
+          _QuoteMvc_quoteListEl.set(this, void 0);
           // #endregion --- Data Events
       }
       init() {
           var _a, _b;
           let htmlContent = html `
       <div class="box"></div>
-      <h1>todos</h1>
-      <todo-input></todo-input>
-      <todo-list></todo-list>    
+      <h1>quotes</h1>
+      <quote-input></quote-input>
+      <quote-list></quote-list>    
     `;
-          _a = this, _b = this, [({ set value(_c) { __classPrivateFieldSet(_a, _TodoMvc_todoInputEl, _c, "f"); } }).value, ({ set value(_c) { __classPrivateFieldSet(_b, _TodoMvc_todoListEl, _c, "f"); } }).value] =
-              getChildren(htmlContent, 'todo-input', 'todo-list');
+          _a = this, _b = this, [({ set value(_c) { __classPrivateFieldSet(_a, _QuoteMvc_quoteInputEl, _c, "f"); } }).value, ({ set value(_c) { __classPrivateFieldSet(_b, _QuoteMvc_quoteListEl, _c, "f"); } }).value] =
+              getChildren(htmlContent, 'quote-input', 'quote-list');
           this.append(htmlContent);
           this.refresh();
       }
       async refresh() {
-          let todos = await todoMco.list();
+          let quotes = await quoteMco.list();
           // This exists only for testing purposes
-          // let todos: Todo[] = [
-          //  { id: 1, title: "mock1", status: "Close" },
-          //  { id: 2, title: "mock2", status: "Open" }
+          // let quotes: quote[] = [
+          //  { id: 1, quote: "mock1", author: "Unknown 1" },
+          //  { id: 2, quote: "mock2", author: "Unknown 2" }
           //];
           let htmlContent = document.createDocumentFragment();
-          for (const todo of todos) {
-              const el = document.createElement('todo-item');
-              el.data = todo; // todo will be frozen
+          for (const quote of quotes) {
+              const el = document.createElement('quote-item');
+              el.data = quote; // quote will be frozen
               htmlContent.append(el);
           }
-          __classPrivateFieldGet(this, _TodoMvc_todoListEl, "f").innerHTML = '';
-          __classPrivateFieldGet(this, _TodoMvc_todoListEl, "f").append(htmlContent);
+          __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").innerHTML = '';
+          __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").append(htmlContent);
       }
-      // #region    --- UI Events
-      onCheckTodo(evt) {
-          const todoItem = evt.selectTarget.closest("todo-item");
-          const status = todoItem.data.status == 'Open' ? 'Close' : 'Open';
-          // update to server
-          todoMco.update(todoItem.data.id, { status });
+      /*// #region    --- UI Events
+      @onEvent('pointerup', 'c-check')
+      onCheckQuote(evt: PointerEvent & OnEvent) {
+        const quoteItem = evt.selectTarget.closest("quote-item")!;
+        const status = quoteItem.data.author == 'Open' ? 'Close' : 'Open';
+        // update to server
+        quoteMco.update(quoteItem.data.id, { author });
       }
-      // #endregion --- UI Events
+      */ // #endregion --- UI Events
       // #region    --- Data Events
-      onTodoUpdate(data) {
-          // find the todo in the UI
-          const todoItem = first(`todo-item.Todo-${data.id}`);
+      onQuoteUpdate(data) {
+          // find the quote in the UI
+          const quoteItem = first(`quote-item.Quote-${data.id}`);
           // if found, update it.
-          if (todoItem) {
-              todoItem.data = data; // data will be frozen
+          if (quoteItem) {
+              quoteItem.data = data; // data will be frozen
           }
       }
-      onTodoCreate(data) {
+      onQuoteCreate(data) {
           this.refresh();
       }
   };
-  _TodoMvc_todoInputEl = new WeakMap();
-  _TodoMvc_todoListEl = new WeakMap();
+  _QuoteMvc_quoteInputEl = new WeakMap();
+  _QuoteMvc_quoteListEl = new WeakMap();
   __decorate([
-      onEvent('pointerup', 'c-check')
-  ], TodoMvc.prototype, "onCheckTodo", null);
+      onHub('dataHub', 'Quote', 'update')
+  ], QuoteMvc.prototype, "onQuoteUpdate", null);
   __decorate([
-      onHub('dataHub', 'Todo', 'update')
-  ], TodoMvc.prototype, "onTodoUpdate", null);
-  __decorate([
-      onHub('dataHub', 'Todo', 'create')
-  ], TodoMvc.prototype, "onTodoCreate", null);
-  TodoMvc = __decorate([
-      customElement("todo-mvc")
-  ], TodoMvc);
-  let TodoInput = class TodoInput extends BaseHTMLElement {
+      onHub('dataHub', 'Quote', 'create')
+  ], QuoteMvc.prototype, "onQuoteCreate", null);
+  QuoteMvc = __decorate([
+      customElement("quote-mvc")
+  ], QuoteMvc);
+  let QuoteInput = class QuoteInput extends BaseHTMLElement {
       constructor() {
           super(...arguments);
-          _TodoInput_inputEl.set(this, void 0);
+          _QuoteInput_inputEl.set(this, void 0);
           // #endregion --- UI Events
       }
       init() {
           let htmlContent = html `
-      <input type="text" placeholder="What needs to be done?">
+      <input type="text" placeholder="Enter your quote here">
+      <input type="text" placeholder="Who said this?">
     `;
-          __classPrivateFieldSet(this, _TodoInput_inputEl, getChild(htmlContent, 'input'), "f");
+          __classPrivateFieldSet(this, _QuoteInput_inputEl, getChild(htmlContent, 'input'), "f");
           this.append(htmlContent);
       }
       // #region    --- UI Events
       onInputKeyUp(evt) {
           if (evt.key == "Enter") {
               // get value from UI
-              const title = __classPrivateFieldGet(this, _TodoInput_inputEl, "f").value;
+              const quote = __classPrivateFieldGet(this, _QuoteInput_inputEl, "f").value;
               // send create to server
-              todoMco.create({ title });
+              quoteMco.create({ quote });
               // don't wait, reset value input
-              __classPrivateFieldGet(this, _TodoInput_inputEl, "f").value = '';
+              __classPrivateFieldGet(this, _QuoteInput_inputEl, "f").value = '';
           }
       }
   };
-  _TodoInput_inputEl = new WeakMap();
+  _QuoteInput_inputEl = new WeakMap();
   __decorate([
       onEvent('keyup', 'input')
-  ], TodoInput.prototype, "onInputKeyUp", null);
-  TodoInput = __decorate([
-      customElement("todo-input")
-  ], TodoInput);
-  let TodoItem = class TodoItem extends BaseHTMLElement {
+  ], QuoteInput.prototype, "onInputKeyUp", null);
+  QuoteInput = __decorate([
+      customElement("quote-input")
+  ], QuoteInput);
+  let QuoteItem = class QuoteItem extends BaseHTMLElement {
       constructor() {
           super(...arguments);
-          _TodoItem_titleEl.set(this, void 0);
-          _TodoItem_data.set(this, void 0);
+          _QuoteItem_titleEl.set(this, void 0);
+          _QuoteItem_data.set(this, void 0);
       }
       set data(data) {
-          let oldData = __classPrivateFieldGet(this, _TodoItem_data, "f");
-          __classPrivateFieldSet(this, _TodoItem_data, Object.freeze(data), "f");
+          let oldData = __classPrivateFieldGet(this, _QuoteItem_data, "f");
+          __classPrivateFieldSet(this, _QuoteItem_data, Object.freeze(data), "f");
           if (this.isConnected) {
               this.refresh(oldData);
           }
       }
-      get data() { return __classPrivateFieldGet(this, _TodoItem_data, "f"); }
+      get data() { return __classPrivateFieldGet(this, _QuoteItem_data, "f"); }
       init() {
           let htmlContent = html `
-			<c-check><c-ico name="ico-done"></c-ico></c-check>
-			<div class="title">STATIC TITLE</div>
-			<c-ico name="del"></c-ico>        
+            <c-check><c-ico name="ico-done"></c-ico></c-check>
+            <div class="title">STATIC TITLE</div>
+            <c-ico name="del"></c-ico>        
     `;
-          __classPrivateFieldSet(this, _TodoItem_titleEl, getChild(htmlContent, 'div'), "f");
+          __classPrivateFieldSet(this, _QuoteItem_titleEl, getChild(htmlContent, 'div'), "f");
           this.append(htmlContent);
           this.refresh();
       }
       refresh(old) {
           if (old != null) {
-              this.classList.remove(`Todo-${old.id}`);
-              this.classList.remove(old.status);
+              this.classList.remove(`Quote-${old.id}`);
+              this.classList.remove(old.author);
           }
           // render new data
-          const todo = __classPrivateFieldGet(this, _TodoItem_data, "f");
-          this.classList.add(`Todo-${todo.id}`);
-          this.classList.add(todo.status);
-          __classPrivateFieldGet(this, _TodoItem_titleEl, "f").textContent = todo.title;
+          const quote = __classPrivateFieldGet(this, _QuoteItem_data, "f");
+          this.classList.add(`Quote-${quote.id}`);
+          this.classList.add(quote.author);
+          __classPrivateFieldGet(this, _QuoteItem_titleEl, "f").textContent = quote.quote;
       }
   };
-  _TodoItem_titleEl = new WeakMap();
-  _TodoItem_data = new WeakMap();
-  TodoItem = __decorate([
-      customElement('todo-item')
-  ], TodoItem);
+  _QuoteItem_titleEl = new WeakMap();
+  _QuoteItem_data = new WeakMap();
+  QuoteItem = __decorate([
+      customElement('quote-item')
+  ], QuoteItem);
 
   console.log("->> hello from main.ts");
 
