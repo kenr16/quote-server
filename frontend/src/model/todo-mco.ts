@@ -1,12 +1,11 @@
-//import { hub } from 'dom-native';
-//import { webDelete, webGet, webPatch, webPost } from '../webc';
-
+import { hub } from 'dom-native';
+import { webDelete, webGet, webPatch, webPost } from '../webc.js';
 export interface Todo {
   id: number;
   title: string;
   status: 'Open' | 'Close';
 }
-/*
+
 export type TodoPatch = Partial<Omit<Todo, 'id'>>;
 
 class TodoMco {
@@ -50,4 +49,3 @@ class TodoMco {
 }
 
 export const todoMco = new TodoMco();
-*/

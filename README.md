@@ -6,28 +6,19 @@ A very basic quote web server written in Rust.
 # DB
 *The database here uses postgres and assumes that there is a user called 'postgres' with password 'postgres' and superuser priviledges.
 
-# Start the database
+# Start the database in the first terminal
 docker run --rm -p 5432:5432 -e "POSTGRES_PASSWORD=postgres" --name pg postgres:14
+
+# Start the backend in a second terminal
+cd backend
+cargo watch -q -c -w src/ -x 'run -- ../frontend/web-folder'
+
+# Start the frontend in a third terminal
+cd frontend
+npm run build -- -w
 
 # Optional psql (other terminal)
 docker exec -it -u postgers pg psql
-
-
-# Dev Test
-
-# Test for the model:
-cargo watch -q -c -w src/ -x 'test model_ -- --test-threads=1 --nocapture'
-
-# Test for the web component:
-cargo watch -q -c -w src/ -x 'test web_ -- --test-threads=1 --nocapture'
-
-# Test only the database:
-cargo watch -q -c -w src/ -x 'test model_db_ -- --test-threads=1 --nocapture'
-
-# Dev Web Tests
-
-cd backend
-cargo watch -q -c -w src/ -x 'run -- ../frontend/web-folder'
 
 # Things I have learned:
 The mod.rs file will usually need to be updated with a list of modules anytime one wishes to export a function, even if the exported function is not being exported to or from the mod.rs file within the directory itself.
@@ -49,3 +40,14 @@ template1=# \q
 existing users can be eleveated to superuser in psql with the following:
 template1=# ALTER USER [username] WITH SUPERUSER;
 
+
+# Optional Dev Tests
+
+# Test for the model:
+cargo watch -q -c -w src/ -x 'test model_ -- --test-threads=1 --nocapture'
+
+# Test for the web component:
+cargo watch -q -c -w src/ -x 'test web_ -- --test-threads=1 --nocapture'
+
+# Test only the database:
+cargo watch -q -c -w src/ -x 'test model_db_ -- --test-threads=1 --nocapture'
