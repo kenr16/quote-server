@@ -25,31 +25,11 @@ cargo watch -q -c -w src/ -x 'test web_ -- --test-threads=1 --nocapture'
 cargo watch -q -c -w src/ -x 'test model_db_ -- --test-threads=1 --nocapture'
 '''
 
-## DB
-
-'''sh
-# Start the database
-docker run --rm -p 5432:5432 -e "POSTGRES_PASSWORD=postgres" --name pg postgres:14
-
-# Optional psql (other terminal)
-docker exec -it -u postgers pg psql
-'''
-
-## Dev Web
+## Dev Web Tests
 
 '''sh
 cd backend
 cargo watch -q -c -w src/ -x 'run -- ../frontend/web-folder'
-'''
-
-## DB
-
-'''sh
-# Start the database
-docker run --rm -p 5432:5432 -e "POSTGRES_PASSWORD=postgres" --name pg postgres:14
-
-# Optional psql (other terminal)
-docker exec -it -u postgers pg psql
 '''
 
 # Things I have learned:
