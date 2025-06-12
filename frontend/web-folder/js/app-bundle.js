@@ -1057,18 +1057,6 @@
           return _execQuerySelector(false, el, selector);
       }
   }
-  function getChild(el, name) {
-      if (el == null) {
-          throw new Error(`dom-native - getChild - requires el to not be null`);
-      }
-      name = name.toUpperCase();
-      for (const child of el.children) {
-          if (child.tagName === name) {
-              return child;
-          }
-      }
-      throw new Error(`dom-native - getChild - No child found for selector ${name}`);
-  }
   function getChildren(el, ...names) {
       const childrenCount = el.childElementCount;
       if (childrenCount < names.length) {
@@ -1201,59 +1189,60 @@
   }
   const quoteMco = new QuoteMco();
 
-  var _QuoteMvc_quoteInputEl, _QuoteMvc_quoteListEl, _QuoteInput_inputEl, _QuoteItem_titleEl, _QuoteItem_data;
+  var _QuoteMvc_quoteInputEl, _QuoteMvc_quoteListEl, _QuoteInput_quoteInput, _QuoteInput_authorInput, _QuoteItem_instances, _QuoteItem_quoteEl, _QuoteItem_authorEl, _QuoteItem_data, _QuoteItem_safeClass;
+  /* ------------------- quote-mvc ------------------- */
   let QuoteMvc = class QuoteMvc extends BaseHTMLElement {
       constructor() {
           super(...arguments);
           _QuoteMvc_quoteInputEl.set(this, void 0);
           _QuoteMvc_quoteListEl.set(this, void 0);
-          // #endregion --- Data Events
+          // #endregion
       }
       init() {
           var _a, _b;
-          let htmlContent = html `
+          const htmlContent = html `
       <div class="box"></div>
       <h1>quotes</h1>
       <quote-input></quote-input>
-      <quote-list></quote-list>    
+      <quote-list></quote-list>
     `;
-          _a = this, _b = this, [({ set value(_c) { __classPrivateFieldSet(_a, _QuoteMvc_quoteInputEl, _c, "f"); } }).value, ({ set value(_c) { __classPrivateFieldSet(_b, _QuoteMvc_quoteListEl, _c, "f"); } }).value] =
-              getChildren(htmlContent, 'quote-input', 'quote-list');
+          _a = this, _b = this, [({ set value(_c) { __classPrivateFieldSet(_a, _QuoteMvc_quoteInputEl, _c, "f"); } }).value, ({ set value(_c) { __classPrivateFieldSet(_b, _QuoteMvc_quoteListEl, _c, "f"); } }).value] = getChildren(htmlContent, 'quote-input', 'quote-list');
           this.append(htmlContent);
           this.refresh();
       }
       async refresh() {
-          let quotes = await quoteMco.list();
-          // This exists only for testing purposes
-          // let quotes: quote[] = [
-          //  { id: 1, quote: "mock1", author: "Unknown 1" },
-          //  { id: 2, quote: "mock2", author: "Unknown 2" }
-          //];
-          let htmlContent = document.createDocumentFragment();
-          for (const quote of quotes) {
-              const el = document.createElement('quote-item');
-              el.data = quote; // quote will be frozen
-              htmlContent.append(el);
+          try {
+              const quotes = await quoteMco.list();
+              const htmlContent = document.createDocumentFragment();
+              for (const quote of quotes) {
+                  const el = document.createElement('quote-item');
+                  el.data = quote;
+                  htmlContent.append(el);
+              }
+              __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").innerHTML = '';
+              __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").append(htmlContent);
           }
-          __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").innerHTML = '';
-          __classPrivateFieldGet(this, _QuoteMvc_quoteListEl, "f").append(htmlContent);
+          catch (err) {
+              console.error('Failed to load quotes:', err);
+          }
       }
-      /*// #region    --- UI Events
-      @onEvent('pointerup', 'c-check')
-      onCheckQuote(evt: PointerEvent & OnEvent) {
-        const quoteItem = evt.selectTarget.closest("quote-item")!;
-        const status = quoteItem.data.author == 'Open' ? 'Close' : 'Open';
-        // update to server
-        quoteMco.update(quoteItem.data.id, { author });
+      // #region --- UI Events
+      async onCheckQuote(evt) {
+          const quoteItem = evt.selectTarget.closest("quote-item");
+          try {
+              await quoteMco.delete(quoteItem.data.id);
+              this.refresh();
+          }
+          catch (err) {
+              console.error('Failed to delete quote:', err);
+          }
       }
-      */ // #endregion --- UI Events
-      // #region    --- Data Events
+      // #endregion
+      // #region --- Data Events
       onQuoteUpdate(data) {
-          // find the quote in the UI
           const quoteItem = first(`quote-item.Quote-${data.id}`);
-          // if found, update it.
           if (quoteItem) {
-              quoteItem.data = data; // data will be frozen
+              quoteItem.data = data;
           }
       }
       onQuoteCreate(data) {
@@ -1263,6 +1252,9 @@
   _QuoteMvc_quoteInputEl = new WeakMap();
   _QuoteMvc_quoteListEl = new WeakMap();
   __decorate([
+      onEvent('pointerup', 'c-check')
+  ], QuoteMvc.prototype, "onCheckQuote", null);
+  __decorate([
       onHub('dataHub', 'Quote', 'update')
   ], QuoteMvc.prototype, "onQuoteUpdate", null);
   __decorate([
@@ -1271,77 +1263,99 @@
   QuoteMvc = __decorate([
       customElement("quote-mvc")
   ], QuoteMvc);
+  /* ------------------- quote-input ------------------- */
   let QuoteInput = class QuoteInput extends BaseHTMLElement {
       constructor() {
           super(...arguments);
-          _QuoteInput_inputEl.set(this, void 0);
-          // #endregion --- UI Events
+          _QuoteInput_quoteInput.set(this, void 0);
+          _QuoteInput_authorInput.set(this, void 0);
       }
       init() {
-          let htmlContent = html `
+          this.append(html `
       <input type="text" placeholder="Enter your quote here">
       <input type="text" placeholder="Who said this?">
-    `;
-          __classPrivateFieldSet(this, _QuoteInput_inputEl, getChild(htmlContent, 'input'), "f");
-          this.append(htmlContent);
+    `);
+          const inputs = this.querySelectorAll('input');
+          __classPrivateFieldSet(this, _QuoteInput_quoteInput, inputs[0], "f");
+          __classPrivateFieldSet(this, _QuoteInput_authorInput, inputs[1], "f");
       }
-      // #region    --- UI Events
-      onInputKeyUp(evt) {
-          if (evt.key == "Enter") {
-              // get value from UI
-              const quote = __classPrivateFieldGet(this, _QuoteInput_inputEl, "f").value;
-              // send create to server
-              quoteMco.create({ quote });
-              // don't wait, reset value input
-              __classPrivateFieldGet(this, _QuoteInput_inputEl, "f").value = '';
+      async onInputKeyUp(evt) {
+          if (evt.key === "Enter") {
+              const quote = __classPrivateFieldGet(this, _QuoteInput_quoteInput, "f").value.trim();
+              const author = __classPrivateFieldGet(this, _QuoteInput_authorInput, "f").value.trim();
+              if (quote) {
+                  try {
+                      await quoteMco.create({ quote, author });
+                      __classPrivateFieldGet(this, _QuoteInput_quoteInput, "f").value = '';
+                      __classPrivateFieldGet(this, _QuoteInput_authorInput, "f").value = '';
+                  }
+                  catch (err) {
+                      console.error('Failed to create quote:', err);
+                  }
+              }
           }
       }
   };
-  _QuoteInput_inputEl = new WeakMap();
+  _QuoteInput_quoteInput = new WeakMap();
+  _QuoteInput_authorInput = new WeakMap();
   __decorate([
       onEvent('keyup', 'input')
   ], QuoteInput.prototype, "onInputKeyUp", null);
   QuoteInput = __decorate([
       customElement("quote-input")
   ], QuoteInput);
+  /* ------------------- quote-item ------------------- */
   let QuoteItem = class QuoteItem extends BaseHTMLElement {
       constructor() {
           super(...arguments);
-          _QuoteItem_titleEl.set(this, void 0);
+          _QuoteItem_instances.add(this);
+          _QuoteItem_quoteEl.set(this, void 0);
+          _QuoteItem_authorEl.set(this, void 0);
           _QuoteItem_data.set(this, void 0);
       }
       set data(data) {
-          let oldData = __classPrivateFieldGet(this, _QuoteItem_data, "f");
+          const oldData = __classPrivateFieldGet(this, _QuoteItem_data, "f");
           __classPrivateFieldSet(this, _QuoteItem_data, Object.freeze(data), "f");
-          if (this.isConnected) {
+          if (this.isConnected)
               this.refresh(oldData);
-          }
       }
-      get data() { return __classPrivateFieldGet(this, _QuoteItem_data, "f"); }
+      get data() {
+          return __classPrivateFieldGet(this, _QuoteItem_data, "f");
+      }
       init() {
-          let htmlContent = html `
-            <c-check><c-ico name="ico-done"></c-ico></c-check>
-            <div class="title">STATIC TITLE</div>
-            <c-ico name="del"></c-ico>        
+          const htmlContent = html `
+      <c-check><c-ico name="ico-done"></c-ico></c-check>
+      <div class="quote-text">STATIC QUOTE</div>
+      <div class="quote-author">STATIC AUTHOR</div>
+      <c-ico name="del"></c-ico>
     `;
-          __classPrivateFieldSet(this, _QuoteItem_titleEl, getChild(htmlContent, 'div'), "f");
+          const [quoteEl, authorEl] = getChildren(htmlContent, 'div', 'div');
+          __classPrivateFieldSet(this, _QuoteItem_quoteEl, quoteEl, "f");
+          __classPrivateFieldSet(this, _QuoteItem_authorEl, authorEl, "f");
           this.append(htmlContent);
           this.refresh();
       }
       refresh(old) {
-          if (old != null) {
+          if (old) {
               this.classList.remove(`Quote-${old.id}`);
-              this.classList.remove(old.author);
+              this.classList.remove(__classPrivateFieldGet(this, _QuoteItem_instances, "m", _QuoteItem_safeClass).call(this, old.quote));
+              this.classList.remove(__classPrivateFieldGet(this, _QuoteItem_instances, "m", _QuoteItem_safeClass).call(this, old.author));
           }
-          // render new data
           const quote = __classPrivateFieldGet(this, _QuoteItem_data, "f");
           this.classList.add(`Quote-${quote.id}`);
-          this.classList.add(quote.author);
-          __classPrivateFieldGet(this, _QuoteItem_titleEl, "f").textContent = quote.quote;
+          this.classList.add(__classPrivateFieldGet(this, _QuoteItem_instances, "m", _QuoteItem_safeClass).call(this, quote.quote));
+          this.classList.add(__classPrivateFieldGet(this, _QuoteItem_instances, "m", _QuoteItem_safeClass).call(this, quote.author));
+          __classPrivateFieldGet(this, _QuoteItem_quoteEl, "f").textContent = `"${quote.quote}"`;
+          __classPrivateFieldGet(this, _QuoteItem_authorEl, "f").textContent = `— ${quote.author || "Unknown"}`;
       }
   };
-  _QuoteItem_titleEl = new WeakMap();
+  _QuoteItem_quoteEl = new WeakMap();
+  _QuoteItem_authorEl = new WeakMap();
   _QuoteItem_data = new WeakMap();
+  _QuoteItem_instances = new WeakSet();
+  _QuoteItem_safeClass = function _QuoteItem_safeClass(str) {
+      return str.replace(/[^\w-]/g, "_");
+  };
   QuoteItem = __decorate([
       customElement('quote-item')
   ], QuoteItem);

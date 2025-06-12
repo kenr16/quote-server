@@ -2,13 +2,9 @@
 
 /* #region    --- Base */
 *{
-	/* best practice for application */
 	box-sizing: border-box; 
-	/* To allow flex/grid box to shrink smaller than content. 
-		see: https://stackoverflow.com/a/36247448/686724 */
 	min-width: 0;
 	min-height: 0;
-	/* layout normalization */
 	margin: 0;
 	padding: 0;
 }

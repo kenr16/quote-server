@@ -1,63 +1,72 @@
-// *** Replaces todo-mvc.ts ***
-import { BaseHTMLElement, customElement, first, getChild, getChildren, html, OnEvent, onEvent, onHub } from 'dom-native';
+// quote-mvc.ts
+import {
+  BaseHTMLElement,
+  customElement,
+  first,
+  getChildren,
+  html,
+  OnEvent,
+  onEvent,
+  onHub
+} from 'dom-native';
 import { Quote, quoteMco } from '../model/quote-mco';
 
+/* ------------------- quote-mvc ------------------- */
 @customElement("quote-mvc")
-class QuoteMvc extends BaseHTMLElement { // extends HTMLElement
+class QuoteMvc extends BaseHTMLElement {
   #quoteInputEl!: QuoteInput;
   #quoteListEl!: HTMLElement;
 
   init() {
-    let htmlContent: DocumentFragment = html`
+    const htmlContent = html`
       <div class="box"></div>
       <h1>quotes</h1>
       <quote-input></quote-input>
-      <quote-list></quote-list>    
+      <quote-list></quote-list>
     `;
-    [this.#quoteInputEl, this.#quoteListEl] =
-      getChildren(htmlContent, 'quote-input', 'quote-list');
 
+    [this.#quoteInputEl, this.#quoteListEl] = getChildren(htmlContent, 'quote-input', 'quote-list');
     this.append(htmlContent);
     this.refresh();
   }
 
   async refresh() {
-    let quotes: Quote[] = await quoteMco.list();
-    // This exists only for testing purposes
-    // let quotes: quote[] = [
-    //  { id: 1, quote: "mock1", author: "Unknown 1" },
-    //  { id: 2, quote: "mock2", author: "Unknown 2" }
-    //];
-    let htmlContent = document.createDocumentFragment();
-    for (const quote of quotes) {
-      const el = document.createElement('quote-item');
-      el.data = quote; // quote will be frozen
-      htmlContent.append(el);
+    try {
+      const quotes: Quote[] = await quoteMco.list();
+
+      const htmlContent = document.createDocumentFragment();
+      for (const quote of quotes) {
+        const el = document.createElement('quote-item') as QuoteItem;
+        el.data = quote;
+        htmlContent.append(el);
+      }
+
+      this.#quoteListEl.innerHTML = '';
+      this.#quoteListEl.append(htmlContent);
+    } catch (err) {
+      console.error('Failed to load quotes:', err);
     }
-
-    this.#quoteListEl.innerHTML = '';
-    this.#quoteListEl.append(htmlContent);
-
   }
 
-  /*// #region    --- UI Events
+  // #region --- UI Events
   @onEvent('pointerup', 'c-check')
-  onCheckQuote(evt: PointerEvent & OnEvent) {
-    const quoteItem = evt.selectTarget.closest("quote-item")!;
-    const status = quoteItem.data.author == 'Open' ? 'Close' : 'Open';
-    // update to server
-    quoteMco.update(quoteItem.data.id, { author });
+  async onCheckQuote(evt: PointerEvent & OnEvent) {
+    const quoteItem = evt.selectTarget.closest("quote-item") as QuoteItem;
+    try {
+      await quoteMco.delete(quoteItem.data.id);
+      this.refresh();
+    } catch (err) {
+      console.error('Failed to delete quote:', err);
+    }
   }
-  */// #endregion --- UI Events
+  // #endregion
 
-  // #region    --- Data Events
+  // #region --- Data Events
   @onHub('dataHub', 'Quote', 'update')
   onQuoteUpdate(data: Quote) {
-    // find the quote in the UI
     const quoteItem = first(`quote-item.Quote-${data.id}`) as QuoteItem | undefined;
-    // if found, update it.
     if (quoteItem) {
-      quoteItem.data = data; // data will be frozen
+      quoteItem.data = data;
     }
   }
 
@@ -65,86 +74,108 @@ class QuoteMvc extends BaseHTMLElement { // extends HTMLElement
   onQuoteCreate(data: Quote) {
     this.refresh();
   }
-  // #endregion --- Data Events
+  // #endregion
 }
 
+/* ------------------- quote-input ------------------- */
 @customElement("quote-input")
-class QuoteInput extends BaseHTMLElement { // extends HTMLElement
-  #inputEl!: HTMLInputElement;
+class QuoteInput extends BaseHTMLElement {
+  #quoteInput!: HTMLInputElement;
+  #authorInput!: HTMLInputElement;
 
   init() {
-    let htmlContent = html`
+    this.append(html`
       <input type="text" placeholder="Enter your quote here">
       <input type="text" placeholder="Who said this?">
-    `;
-    this.#inputEl = getChild(htmlContent, 'input');
+    `);
 
-    this.append(htmlContent);
-
+    const inputs = this.querySelectorAll('input');
+    this.#quoteInput = inputs[0];
+    this.#authorInput = inputs[1];
   }
 
-  // #region    --- UI Events
   @onEvent('keyup', 'input')
-  onInputKeyUp(evt: KeyboardEvent) {
-    if (evt.key == "Enter") {
-      // get value from UI
-      const quote = this.#inputEl.value;
-      // send create to server
-      quoteMco.create({ quote });
-      // don't wait, reset value input
-      this.#inputEl.value = '';
+  async onInputKeyUp(evt: KeyboardEvent) {
+    if (evt.key === "Enter") {
+      const quote = this.#quoteInput.value.trim();
+      const author = this.#authorInput.value.trim();
+
+      if (quote) {
+        try {
+          await quoteMco.create({ quote, author });
+          this.#quoteInput.value = '';
+          this.#authorInput.value = '';
+        } catch (err) {
+          console.error('Failed to create quote:', err);
+        }
+      }
     }
   }
-  // #endregion --- UI Events
 }
-// quote-input tag
+
+// type augmentation
 declare global {
   interface HTMLElementTagNameMap {
     'quote-input': QuoteInput;
   }
 }
 
+/* ------------------- quote-item ------------------- */
 @customElement('quote-item')
-export class QuoteItem extends BaseHTMLElement { // extends HTMLElement
-  #titleEl!: HTMLElement;
+export class QuoteItem extends BaseHTMLElement {
+  #quoteEl!: HTMLElement;
+  #authorEl!: HTMLElement;
   #data!: Quote;
 
   set data(data: Quote) {
-    let oldData = this.#data;
+    const oldData = this.#data;
     this.#data = Object.freeze(data);
-    if (this.isConnected) {
-      this.refresh(oldData);
-    }
+    if (this.isConnected) this.refresh(oldData);
   }
 
-  get data() { return this.#data }
+  get data() {
+    return this.#data;
+  }
 
   init() {
-    let htmlContent = html`
-            <c-check><c-ico name="ico-done"></c-ico></c-check>
-            <div class="title">STATIC TITLE</div>
-            <c-ico name="del"></c-ico>        
+    const htmlContent = html`
+      <c-check><c-ico name="ico-done"></c-ico></c-check>
+      <div class="quote-text">STATIC QUOTE</div>
+      <div class="quote-author">STATIC AUTHOR</div>
+      <c-ico name="del"></c-ico>
     `;
-    this.#titleEl = getChild(htmlContent, 'div');
+
+    const [quoteEl, authorEl] = getChildren(htmlContent, 'div', 'div');
+    this.#quoteEl = quoteEl;
+    this.#authorEl = authorEl;
 
     this.append(htmlContent);
     this.refresh();
   }
 
   refresh(old?: Quote) {
-    if (old != null) {
+    if (old) {
       this.classList.remove(`Quote-${old.id}`);
-      this.classList.remove(old.author);
+      this.classList.remove(this.#safeClass(old.quote));
+      this.classList.remove(this.#safeClass(old.author));
     }
 
-    // render new data
     const quote = this.#data;
     this.classList.add(`Quote-${quote.id}`);
-    this.classList.add(quote.author);
-    this.#titleEl.textContent = quote.quote;
+    this.classList.add(this.#safeClass(quote.quote));
+    this.classList.add(this.#safeClass(quote.author));
+
+    this.#quoteEl.textContent = `"${quote.quote}"`;
+    this.#authorEl.textContent = `— ${quote.author || "Unknown"}`;
+  }
+
+  // sanitize strings for use in class names
+  #safeClass(str: string): string {
+    return str.replace(/[^\w-]/g, "_");
   }
 }
-// quote-item type augmentation
+
+// type augmentation
 declare global {
   interface HTMLElementTagNameMap {
     'quote-item': QuoteItem;
